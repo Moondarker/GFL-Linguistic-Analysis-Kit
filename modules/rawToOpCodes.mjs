@@ -191,6 +191,17 @@ class CutsceneParser {
         }
     }
 
+    async getDatabase() {
+        if (this.MUSIC === null) await this.fetchData()
+
+        return {
+            portraits: this.PORTRAITS,
+            story: this.CHAPTER_DB,
+            music: this.MUSIC,
+            bg: this.BACKGROUNDS
+        }
+    }
+
     /**
      * This method takes a string of gfl script, then returns structured lines. It produces no side effects.
      * @author AmWorks
