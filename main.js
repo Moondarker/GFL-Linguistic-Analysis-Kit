@@ -1,6 +1,6 @@
 import { promises as fs } from "fs"
 
-import { OPCODES, convertGFLTextToOpcodes } from './modules/rawToOpCodes.mjs'
+import { OPCODES, CutsceneParser } from './modules/rawToOpCodes.mjs'
 
 const EVENTS = [
     {name: "Cube", story: true, num_only: false, prefixes: ["-1-", "-6-"]},
@@ -47,11 +47,12 @@ const EVENTS = [
     {name: "Maze Guess", story: false, num_only: false, prefixes: ["-59"]}
 ]
 
+const parser = new CutsceneParser()
 const pathPrefix = '\\\\arctic_vault\\data bank 0\\Downloads\\gfldata\\Exported\\00024b450d9007f41b71a0c3473b1dc3149634characterdp128601spine\\ExportedProject\\Assets\\resources\\dabao\\avgtxt\\'
 
 async function convertFile(path, filename) {
     const fileData = await fs.readFile(path, {encoding: 'utf-8'})
-    return await convertGFLTextToOpcodes(fileData, null, filename)
+    return await parser.convertGFLTextToOpcodes(fileData, null, filename)
 }
 
 function findEventByPrefix(filename) {
