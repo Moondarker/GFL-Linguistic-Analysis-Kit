@@ -12,6 +12,105 @@ const ignoredFiles = [
     'profiles.txt'
 ]
 
+const patches = [
+    {
+        chapter: 'Houkai Gakuen 2nd: Only Master (Fantranslated)',
+        action: 'delete' // reason: not translated in-game
+    },
+    {
+        chapter: 'DJMax Respect: Glory Day',
+        action: 'delete', // reason: "-19-1-2First.txt";"-19-2-2First.txt";"-19-3-2First.txt" are duplicates of respective non-First files
+        episode: '{FALLBACK}'
+    },
+    {
+        chapter: 'CH 10.75: Continuum Turbulence',
+        action: 'delete', // reason: all seem to be duplicates. TODO: double-check
+        episode: '{FALLBACK}'
+    },
+    {
+        chapter: 'Halloween 2019',
+        action: 'rename',
+        name: 'Halloween 2019: Freaky Pandemic'
+    },
+    {
+        chapter: 'Christmas 2019',
+        action: 'rename',
+        name: 'Christmas 2019: A Snowy Night Capriccio'
+    },
+    {
+        chapter: 'Untranslated',
+        action: 'delete' // reason: it's... Untranslated
+    },
+    {
+        chapter: 'Longitudinal Strain (WIP)',
+        action: 'rename',
+        name: 'Longitudinal Strain'
+    },
+    {
+        chapter: 'Not Ch.14: Eclipses & Saros',
+        action: 'rename',
+        name: 'Eclipses & Saros'
+    },
+    {
+        chapter: 'Ch. ???: Slowshock (WIP)',
+        action: 'rename',
+        name: 'Slow Shock'
+    },
+    {
+        chapter: 'Not Ch.14.1: Conjectural Labyrinth (Untranslated)',
+        action: 'delete' // reason: it's... Untranslated
+    },
+    {
+        chapter: 'Maze Guess',
+        action: 'delete' // reason: not translated. yet.
+    },
+    {
+        chapter: 'CH. 11.75: Shattered Connexion',
+        episode: 'Ranking Map Tips',
+        action: 'notstory'
+    },
+    {
+        chapter: 'CH. 13.5: Dual Randomness',
+        episode: 'Ranking map junk',
+        action: 'notstory'
+    },
+    {
+        chapter: 'CH. 13.75: Mirror Stage',
+        episode: 'Ranking Map Tips',
+        action: 'notstory'
+    },
+    {
+        chapter: 'CH. 13.X: Poincaré Recurrence',
+        episode: 'EXT',
+        action: 'notstory'
+    },
+    {
+        chapter: 'CH. 13.X: Poincaré Recurrence',
+        episode: 'Fixguide.txt',
+        action: 'notstory'
+    },
+    {
+        chapter: 'CH. 13.Z: Fixed Point',
+        episode: 'A bunch of random stuff',
+        action: 'notstory'
+    },
+    {
+        chapter: 'CH. 13.Z: Fixed Point',
+        episode: '??? EXT',
+        action: 'notstory'
+    },
+    {
+        chapter: 'CH. 13.Z: Fixed Point',
+        episode: 'Ending Test (Unused)',
+        action: 'notstory'
+    },
+    {
+        chapter: 'Longitudinal Strain',
+        episode: 'U (No idea what this is)',
+        action: 'notstory'
+    }
+]
+
 const asw = new ASW()
 const parser = new CutsceneParser()
 const pathPrefix = await asw.extractAssets()
@@ -72,6 +171,26 @@ fs.readdir(pathPrefix, {recursive: true}).then(dirdata => {
         const results = settled.filter(x => x.status == 'fulfilled').map(x => x.value)
 
         const perEpisodeData = analyzeData(results)
+        console.log('[Main] Applying patches...')
+
+        for (const patch of patches) {
+            switch (patch.action) {
+                case 'delete':
+                    if (patch.episode) {
+                        delete perEpisodeData[patch.chapter].episodes[patch.episode]
+                    } else {
+                        delete perEpisodeData[patch.chapter]
+                    }
+                    break
+                case 'rename':
+                    perEpisodeData[patch.name] = perEpisodeData[patch.chapter]
+                    delete perEpisodeData[patch.chapter] // I fought the urge to use switch fall-through here lol
+                    break
+                case 'notstory':
+                    perEpisodeData[patch.chapter].episodes[patch.episode].story = false
+                    break
+            }
+        }
 
         console.log(`\n[Main] Analysis done. Processed ${results.length} files, analysis failed for ${failed.length} files ${failed.length > 0 ? `(Reasons: "${failed.join('", "') }")` : ''}`)
 
