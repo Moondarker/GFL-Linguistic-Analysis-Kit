@@ -1,6 +1,7 @@
 import { promises as fs } from "fs"
 
 import analyzeData from "./modules/analyze.mjs"
+import { AssetRipperWrapper as ASW } from "./modules/bundleExtractor.mjs"
 import CSVGen from "./modules/csvGenerator.mjs"
 import { OPCODES, CutsceneParser } from './modules/rawToOpCodes.mjs'
 import findSourceByPrefix from './modules/fallbackSourceClassificator.mjs'
@@ -11,8 +12,9 @@ const ignoredFiles = [
     'profiles.txt'
 ]
 
+const asw = new ASW()
 const parser = new CutsceneParser()
-const pathPrefix = '\\\\arctic_vault\\data bank 0\\Downloads\\gfldata\\Exported\\00024b450d9007f41b71a0c3473b1dc3149634characterdp128601spine\\ExportedProject\\Assets\\resources\\dabao\\avgtxt\\'
+const pathPrefix = await asw.extractAssets()
 
 async function convertFile(path, filename) {
     const fileData = await fs.readFile(path, {encoding: 'utf-8'})
@@ -51,11 +53,14 @@ async function analyzeFile(path, filename) {
     }
 }
 
+console.log('[Main] Reading resources list...')
+
 fs.readdir(pathPrefix, {recursive: true}).then(dirdata => {
     const promises = []
 
     dirdata = dirdata.filter(x => x.endsWith('.txt')).map(x => x.replaceAll('\\', '/')).sort()
 
+    console.log('[Main] Analysis started!')
     for (const filename of dirdata) {
         if (ignoredFiles.includes(filename)) continue
 
@@ -68,16 +73,16 @@ fs.readdir(pathPrefix, {recursive: true}).then(dirdata => {
 
         const perEpisodeData = analyzeData(results)
 
-        console.log(`Processed ${results.length} files, analysis failed for ${failed.length} files ${failed.length > 0 ? `(Reasons: "${failed.join('", "') }")` : ''}`)
+        console.log(`\n[Main] Analysis done. Processed ${results.length} files, analysis failed for ${failed.length} files ${failed.length > 0 ? `(Reasons: "${failed.join('", "') }")` : ''}`)
 
         fs.writeFile('result.json', JSON.stringify(perEpisodeData, null, 2), { encoding: 'utf-8' })
         fs.writeFile('result.csv', CSVGen.generateCSV(perEpisodeData), { encoding: 'utf-8' })
 
-        console.log("Preliminary results:")
+        console.log("\n[Main] Preliminary results:")
 
         const totalChars = Object.values(perEpisodeData).reduce((a, b) => a + (b?.characterCount ?? 0), 0)
         const totalWords = Object.values(perEpisodeData).reduce((a, b) => a + (b?.wordCount ?? 0), 0)
-        console.log(`Total characters: ${totalChars}, total words: ${totalWords}`)
+        console.log(`[Main] Total characters: ${totalChars}, total words: ${totalWords}`)
 
         const storyChars = Object.values(perEpisodeData)
                             .map(x => Object.values(x.episodes))
@@ -89,7 +94,7 @@ fs.readdir(pathPrefix, {recursive: true}).then(dirdata => {
                             .flat()
                             .filter(x => x.story)
                             .reduce((a, b) => a + (b?.wordCount ?? 0), 0)
-        console.log(`Story characters: ${storyChars}, story words: ${storyWords}`)
+        console.log(`[Main] Story characters: ${storyChars}, story words: ${storyWords}`)
+        asw.cleanup()
     })
 })
-

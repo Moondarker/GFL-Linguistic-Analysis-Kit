@@ -575,8 +575,8 @@ class CutsceneParser {
                         //console.log(structuredLines[lll])
                         if (idxToCheck > structuredLines[lll][1].length - 1) //Applying the mask command when there's no portraits is an actual thing MICA does. Is it to make my life harder? Who knows.
                         {
-                            console.warn(`WTF? Tried to set a mask command but there's no portraits in ${fileName}.`);
-                            console.warn(lines[i])
+                            console.warn(`[CutsceneParser] WTF? Tried to set a mask command but there's no portraits in ${fileName}.`);
+                            console.warn(`[CutsceneParser] ${lines[i]}`)
                             //consoleWarn(cmds)
                         }
                         else
