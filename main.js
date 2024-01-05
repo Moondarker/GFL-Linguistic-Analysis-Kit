@@ -137,9 +137,16 @@ async function analyzeFile(path, filename) {
     const result = await convertFile(path, filename)
     const messages = result
         .filter(data => data[0] === OPCODES.MSG)
-        .map(data => data[1].replace(/<\/?[^>]+(>|$)/g, ""))
+        .map(data => {
+            return data[1]
+            .replace(/<\/?[^>]+(>|$)/g, '') // filter out tags
+            .replace(/[!@#$%^&*()_+~`\-=;№:?.,<>]/g, '') // filter out all special characters, this approach was chosen due to presence of cyrillic and diacritic-containing letters
+            .replace(/\s{2,}/g, ' ') // make sure only one space remains between words now
+            .trim() // trim spaces and tabs before and after the string
+        })
 
     for (let message of messages) {
+        if (message.length <= 0) continue
         chars += message.length
         words += message.split(' ').length
     }
@@ -170,6 +177,8 @@ fs.readdir(pathPrefix, {recursive: true}).then(dirdata => {
         const failed = settled.filter(x => x.status == 'rejected').map(x => x.reason)
         const results = settled.filter(x => x.status == 'fulfilled').map(x => x.value)
 
+        console.log(`\n[Main] Analysis done. Processed ${results.length} files, analysis failed for ${failed.length} files ${failed.length > 0 ? `(Reasons: "${failed.join('", "') }")` : ''}`)
+
         const perEpisodeData = analyzeData(results)
         console.log('[Main] Applying patches...')
 
@@ -177,6 +186,7 @@ fs.readdir(pathPrefix, {recursive: true}).then(dirdata => {
             switch (patch.action) {
                 case 'delete':
                     if (patch.episode) {
+                        console.log(patch.chapter)
                         delete perEpisodeData[patch.chapter].episodes[patch.episode]
                     } else {
                         delete perEpisodeData[patch.chapter]
@@ -191,8 +201,6 @@ fs.readdir(pathPrefix, {recursive: true}).then(dirdata => {
                     break
             }
         }
-
-        console.log(`\n[Main] Analysis done. Processed ${results.length} files, analysis failed for ${failed.length} files ${failed.length > 0 ? `(Reasons: "${failed.join('", "') }")` : ''}`)
 
         fs.writeFile('result.json', JSON.stringify(perEpisodeData, null, 2), { encoding: 'utf-8' })
         fs.writeFile('result.csv', CSVGen.generateCSV(perEpisodeData), { encoding: 'utf-8' })
