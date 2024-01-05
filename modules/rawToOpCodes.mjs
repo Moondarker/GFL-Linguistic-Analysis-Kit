@@ -216,10 +216,12 @@ class CutsceneParser {
                 bg: this.BACKGROUNDS
             }, null, 2), { encoding: 'utf-8' })
         }
+
+        return true
     }
 
     async getDatabase() {
-        if (this.MUSIC === null) await this.fetchData()
+        if (this.MUSIC === null) throw new Error('Parser has no data fetched, misplaced init?')
 
         return {
             portraits: this.PORTRAITS,
@@ -240,7 +242,7 @@ class CutsceneParser {
      * @returns {any[]}
      */
     async convertGFLTextToOpcodes(out, missionID, fileName = "") {
-        if (this.MUSIC === null) await this.fetchData();
+        if (this.MUSIC === null) throw new Error('Parser has no data fetched, misplaced init?');
 
         //console.log(out);
         var lines = out.split(/\r?\n/);

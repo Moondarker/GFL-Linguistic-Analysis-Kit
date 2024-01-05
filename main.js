@@ -9,6 +9,7 @@ import CSVGen from "./modules/csvGenerator.mjs"
 const asw = new ASW(config.downloader)
 const fp = new FileProcessor(config.stringPostprocessing)
 const pathPrefix = await asw.extractAssets()
+await fp.init()
 
 // Yep, it does changes in-place
 function applyPatches(perEpisodeData) {

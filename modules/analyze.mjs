@@ -10,6 +10,10 @@ class FileProcessor {
         this.mutations = mutations
     }
 
+    async init() {
+        await this.parser.fetchData()
+    }
+
     async convertFile(path, filename) {
         const fileData = await fs.readFile(path, {encoding: 'utf-8'})
         return await this.parser.convertGFLTextToOpcodes(fileData, null, filename)
