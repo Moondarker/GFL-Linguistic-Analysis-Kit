@@ -4,10 +4,9 @@ import { spawn } from 'node:child_process'
 import os from 'os'
 import crypto from 'crypto'
 
+import { assetBundleURL, getAssetRipperURL } from '../config.mjs'
 import unzipFile from './unzipper.mjs'
 
-const assetRipperVersion = '0.3.3.1'
-const assetBundleURL = 'http://gfus-cdn.sunborngame.com/android/9642eb64e84d31d52739fc7478835a436689792assettextavg.ab'
 const textAssetSubPath = '/ExportedProject/Assets/resources/dabao/avgtxt/'
 
 class AssetRipperDownloader {
@@ -57,7 +56,7 @@ class AssetRipperDownloader {
         const os = OS_TO_URL_PART[process.platform] ?? 'linux'
         const arch = ['x64', 'arm64'].includes(process.arch) ? process.arch : 'x64'
     
-        return `https://github.com/AssetRipper/AssetRipper/releases/download/${assetRipperVersion}/AssetRipper_${os}_${arch}.zip`
+        return getAssetRipperURL(os, arch)
     }
 
     static async calculateSHA1(filepath) {

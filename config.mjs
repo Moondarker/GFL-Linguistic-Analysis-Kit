@@ -186,4 +186,9 @@ const downloader = {
     }
 }
 
-export { ignoredFiles, stringPostprocessing, patches, downloader, output }
+const assetBundleURL = 'http://gfus-cdn.sunborngame.com/android/9642eb64e84d31d52739fc7478835a436689792assettextavg.ab'
+
+const assetRipperVersion = '0.3.3.1'
+const getAssetRipperURL = (os, arch) => `https://github.com/AssetRipper/AssetRipper/releases/download/${assetRipperVersion}/AssetRipper_${os}_${arch}.zip`
+
+export { ignoredFiles, stringPostprocessing, patches, downloader, output, assetBundleURL, getAssetRipperURL }
