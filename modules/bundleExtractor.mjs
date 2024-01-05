@@ -2,22 +2,31 @@ import { promises as fs, createReadStream, createWriteStream } from 'fs'
 import { promises as stream, Transform } from 'node:stream'
 import { spawn } from 'node:child_process'
 import os from 'os'
+import crypto from 'crypto'
 
 import unzipFile from './unzipper.mjs'
-import { pipeline } from 'stream'
 
 const assetRipperVersion = '0.3.3.1'
 const assetBundleURL = 'http://gfus-cdn.sunborngame.com/android/9642eb64e84d31d52739fc7478835a436689792assettextavg.ab'
 const textAssetSubPath = '/ExportedProject/Assets/resources/dabao/avgtxt/'
 
 class AssetRipperDownloader {
-    constructor() {
+    constructor(config) {
+        this.config = config
         this.tempDir = null
     }
 
     async init() {
         console.log('[ASD] Initializing...')
         if (this.tempDir != null) return
+
+        if (this.config.tempPath) {
+            await fs.mkdir(this.config.tempPath, { recursive: true })
+            this.tempDir = this.config.tempPath
+            console.log(`[ASD] Using supplied temp dir: ${this.tempDir}`)
+            return this.tempDir
+        }
+
         const prefix = `${os.tmpdir()}/gfl-se-`
         this.tempDir = await fs.mkdtemp(prefix)
         console.log('[ASD] Temp dir created')
@@ -51,12 +60,53 @@ class AssetRipperDownloader {
         return `https://github.com/AssetRipper/AssetRipper/releases/download/${assetRipperVersion}/AssetRipper_${os}_${arch}.zip`
     }
 
+    static async calculateSHA1(filepath) {
+        try {
+            await fs.stat(filepath)
+        } catch (e) {
+            return '0000000000000000000000000000000000000000'
+        }
+
+        const fd = createReadStream(filepath)
+        const hash = crypto.createHash('sha1')
+        hash.setEncoding('hex')
+
+        return new Promise(resolve => {
+            fd.on('end', () => {
+                hash.end()
+                resolve(hash.read())
+            })
+            fd.pipe(hash)
+        })
+    }
+
+    async integrityCheck(path, stage) {
+        const hashes = this.config.fileHashes[process.platform][process.arch][stage]
+        for (const [filename, hash] of Object.entries(hashes)) {
+            const result = await AssetRipperDownloader.calculateSHA1(`${path}/${filename}`)
+            if (result != hash) return false
+            console.debug(`[ASD] Integrity check: "${filename}", hash "${hash}" - ok`)
+        }
+        return true
+    }
+
     async download() {
+        const targetFile = `${this.tempDir}/assetripper.zip`
+
+        try {
+            await fs.stat(targetFile)
+
+            if (!this.config.skipIntegrityChecks && !(await this.integrityCheck(this.tempDir, 'download')))
+                throw new Error('Integrity check failed')
+
+            console.log(`[ASD] Using previously downloaded AssetRipper archive`)
+            return targetFile
+        } catch (e) {}
+
         const assetRipperURL = AssetRipperDownloader.getURL()
         console.log(`[ASD] Downloading AssetRipper from ${assetRipperURL}...`)
         if (this.tempDir == null) await this.init()
 
-        const targetFile = `${this.tempDir}/assetripper.zip`
         const response = await fetch(AssetRipperDownloader.getURL())
         const fileStream = createWriteStream(targetFile)
         await stream.pipeline(response.body, fileStream)
@@ -77,6 +127,17 @@ class AssetRipperDownloader {
     }
 
     async extract(filepath) {
+        try {
+            if (this.config.skipIntegrityChecks)
+                throw new Error('Can\'t skip integrity checks, proceeding to extract...')
+
+            if (!(await this.integrityCheck(this.tempDir, 'unzip')))
+                throw new Error('Integrity check failed')
+
+            console.log(`[ASD] Using previously extracted AssetRipper`)
+            return this.tempDir
+        } catch (e) {}
+
         console.log(`[ASD] Extracting AssetRipper...`)
         if (this.tempDir == null) await this.init()
         await unzipFile(filepath, this.tempDir)
@@ -99,10 +160,11 @@ class AssetRipperDownloader {
 }
 
 class AssetRipperWrapper {
-    constructor() {
-        this.downloader = new AssetRipperDownloader()
+    constructor(downloaderConfig) {
+        this.downloader = new AssetRipperDownloader(downloaderConfig)
         this.exe = null
         this.textAssetBundle = null
+        this.tempDir = null
     }
 
     async init() {
@@ -121,7 +183,11 @@ class AssetRipperWrapper {
 
         console.log(`[ASW] Extracting assets...`)
         const extractionPath = `${this.tempDir}/ExtractedAssets`
-        await fs.mkdir(extractionPath)
+        try {
+            await fs.stat(extractionPath)
+        } catch (e) {
+            await fs.mkdir(extractionPath)
+        }
 
         const child = spawn(this.exe, [this.textAssetBundle, '-o', extractionPath, '-q'])
         const stdoutPrefix = new Transform({
