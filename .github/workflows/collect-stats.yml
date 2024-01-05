@@ -1,0 +1,34 @@
+name: Collect GFL stats
+
+on:
+  workflow_dispatch:
+  schedule:
+  - cron: '0 0 1/14 * *'
+
+jobs:
+  collect-stats:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    - name: Setup Node.js environment
+      uses: actions/setup-node@v4.0.1
+      with:
+        # Version Spec of the version to use. Examples: 12.x, 10.15.1, >=10.15.0.
+        node-version: 21.x
+        # Used to specify a package manager for caching in the default directory. Supported values: npm, yarn, pnpm.
+        cache: npm
+        # Used to specify the path to a dependency file: package-lock.json, yarn.lock, etc. Supports wildcards or a list of file names for caching multiple dependencies.
+        cache-dependency-path: package-lock.json
+    - name: npm install
+      run: npm install
+    - name: Collect stats
+      run: npm run start
+    - name: Collect stats
+      run: npm run start
+    - name: Archive stats
+      uses: actions/upload-artifact@v3
+      with:
+        name: results
+        path: result.*
