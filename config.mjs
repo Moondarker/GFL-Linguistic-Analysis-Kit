@@ -114,7 +114,7 @@ const patches = [
 ]
 
 const determineIfStory = (storyType, chName, epName) => 
-    ['main', 'event'].includes(storyType) && (chName.includes('Chapter') ? !epName.includes('Night') : true)
+    ['main', 'event'].includes(storyType) && (chName.includes('Chapter') ? !epName.startsWith('Midnight') : true)
 
 const downloader = {
     tempPath: '', // [string] Path to temp directory w/o trailing slash, will use OS temp directory by default
