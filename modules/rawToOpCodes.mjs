@@ -162,6 +162,27 @@ class CutsceneParser {
         this.CHAPTER_DB = null
         this.MUSIC = null
         this.BACKGROUNDS = null
+        this.FILE_TO_CHAPTER = null
+    }
+
+    static chapterDBtoFileMap(chapterDB) {
+        const result = {}
+
+        for (const storyType of ['main', 'event', 'side', 'crossover']) {
+            for (const chapter of chapterDB[storyType]) {
+                for (const episode of chapter.episodes) {
+                    for (const part of episode.parts) {
+                        result[part] = {
+                            name: chapter.name,
+                            episodeName: episode.name,
+                            story: ['main', 'event'].includes(storyType) && (chapter.name.includes('Chapter') ? episode.name.includes('Normal') : true)
+                        }
+                    }
+                }
+            }
+        }
+
+        return result
     }
 
     async fetchData() {
@@ -174,13 +195,17 @@ class CutsceneParser {
             this.CHAPTER_DB = data['story']
             this.MUSIC = data['music']
             this.BACKGROUNDS = data['bg']
-        } catch {
+            this.FILE_TO_CHAPTER = CutsceneParser.chapterDBtoFileMap(this.CHAPTER_DB)
+        } catch (e) {
+            if (e.code !== 'ENOENT') throw e
+
             let data = await (await fetch('https://gfl.amaryllisworks.pw/chapterDatabase.json')).json()
 
             this.PORTRAITS = await (await fetch('https://gfl.amaryllisworks.pw/portraitInformation.json')).json()
             this.CHAPTER_DB = data['story']
             this.MUSIC = data['music']
             this.BACKGROUNDS = data['bg']
+            this.FILE_TO_CHAPTER = CutsceneParser.chapterDBtoFileMap(this.CHAPTER_DB)
 
             await fs.writeFile('./db.json', JSON.stringify({
                 portraits: this.PORTRAITS,
@@ -188,6 +213,18 @@ class CutsceneParser {
                 music: this.MUSIC,
                 bg: this.BACKGROUNDS
             }, null, 2), { encoding: 'utf-8' })
+        }
+    }
+
+    async getDatabase() {
+        if (this.MUSIC === null) await this.fetchData()
+
+        return {
+            portraits: this.PORTRAITS,
+            story: this.CHAPTER_DB,
+            music: this.MUSIC,
+            bg: this.BACKGROUNDS,
+            fileMap: this.FILE_TO_CHAPTER
         }
     }
 
@@ -538,8 +575,8 @@ class CutsceneParser {
                         //console.log(structuredLines[lll])
                         if (idxToCheck > structuredLines[lll][1].length - 1) //Applying the mask command when there's no portraits is an actual thing MICA does. Is it to make my life harder? Who knows.
                         {
-                            console.error(`WTF? Tried to set a mask command but there's no portraits in ${fileName}.`);
-                            console.error(lines[i])
+                            console.warn(`[CutsceneParser] WTF? Tried to set a mask command but there's no portraits in ${fileName}.`);
+                            console.warn(`[CutsceneParser] ${lines[i]}`)
                             //consoleWarn(cmds)
                         }
                         else
