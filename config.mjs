@@ -113,6 +113,9 @@ const patches = [
     }
 ]
 
+const determineIfStory = (storyType, chName, epName) => 
+    ['main', 'event'].includes(storyType) && (chName.includes('Chapter') ? !epName.includes('Night') : true)
+
 const downloader = {
     tempPath: '', // [string] Path to temp directory w/o trailing slash, will use OS temp directory by default
     preserveData: false, // [bool] Don't wipe temp directory after processing
@@ -191,4 +194,4 @@ const assetBundleURL = 'http://gfus-cdn.sunborngame.com/android/9642eb64e84d31d5
 const assetRipperVersion = '0.3.3.1'
 const getAssetRipperURL = (os, arch) => `https://github.com/AssetRipper/AssetRipper/releases/download/${assetRipperVersion}/AssetRipper_${os}_${arch}.zip`
 
-export { ignoredFiles, stringPostprocessing, patches, downloader, output, assetBundleURL, getAssetRipperURL }
+export { ignoredFiles, stringPostprocessing, patches, downloader, output, assetBundleURL, getAssetRipperURL, determineIfStory }

@@ -1,5 +1,7 @@
 import { promises as fs } from "fs"
 
+import { determineIfStory } from '../config.mjs'
+
 //For JSON structured or making your own
 //Pro tip: use opcode2string.indexOf(s) to get the opcode number
 const opcode2string = [
@@ -175,7 +177,7 @@ class CutsceneParser {
                         result[part] = {
                             name: chapter.name,
                             episodeName: episode.name,
-                            story: ['main', 'event'].includes(storyType) && (chapter.name.includes('Chapter') ? episode.name.includes('Normal') : true)
+                            story: determineIfStory(storyType, chapter.name, episode.name)
                         }
                     }
                 }
