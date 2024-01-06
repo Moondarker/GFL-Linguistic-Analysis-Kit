@@ -16,30 +16,60 @@ function applyPatches(perEpisodeData) {
     for (const patch of config.patches) {
         console.log(`[Main] Applying patch to CH "${patch.chapter}${patch.episode ? `" - EP "${patch.episode}` : ''}": ${patch.action}`)
 
-        if (!perEpisodeData[patch.chapter]) {
+        const chapter = perEpisodeData[patch.chapter]
+        if (!chapter) {
             console.warn(`[Main] Chapter "${patch.chapter}" not found - failed to apply patch!`)
             continue
         }
 
-        if (patch.episode && !perEpisodeData[patch.chapter].episodes[patch.episode]) {
+        const episode = perEpisodeData[patch.chapter].episodes[patch.episode]
+        if (patch.episode && !episode) {
             console.warn(`[Main] Episode "${patch.episode}" not found in chapter "${patch.chapter}" - failed to apply patch!`)
             continue
         }
 
         switch (patch.action) {
             case 'delete':
-                if (patch.episode) {
-                    delete perEpisodeData[patch.chapter].episodes[patch.episode]
-                } else {
+                if (patch.episode)
+                    delete chapter.episodes[patch.episode]
+                else
                     delete perEpisodeData[patch.chapter]
-                }
                 break
             case 'rename':
-                perEpisodeData[patch.name] = perEpisodeData[patch.chapter]
-                delete perEpisodeData[patch.chapter] // I fought the urge to use switch fall-through here lol
+                if (!patch.name) { console.warn(`[Main] New chapter name not specified - failed to apply patch!`); continue }
+                if (episode) {
+                    chapter.episodes[patch.name] = episode
+                    delete chapter.episodes[patch.episode]
+                    continue
+                }
+                perEpisodeData[patch.name] = chapter
+                delete perEpisodeData[patch.chapter]
                 break
             case 'notstory':
-                perEpisodeData[patch.chapter].episodes[patch.episode].story = false
+                if (!episode) { console.warn(`[Main] Episode not specified or doesn't exist - failed to apply patch!`); continue }
+                episode.story = false
+                break
+            case 'move':
+                if (!patch.targetChapter) { console.warn(`[Main] Target chapter not specified or doesn't exist - failed to apply patch!`); continue }
+                if (!episode) { console.warn(`[Main] Episode not specified or doesn't exist - failed to apply patch!`); continue }
+
+                let targetChapter = perEpisodeData[patch.targetChapter]
+                if (!targetChapter) {
+                    targetChapter = {
+                        characterCount: 0,
+                        wordCount: 0,
+                        episodes: []
+                    }
+                    perEpisodeData[patch.targetChapter] = targetChapter
+                }
+
+                targetChapter.characterCount += episode.characterCount
+                chapter.characterCount -= episode.characterCount
+                targetChapter.wordCount += episode.wordCount
+                chapter.wordCount -= episode.wordCount
+
+                targetChapter.episodes[patch.episode] = episode
+                delete chapter.episodes[patch.episode]
                 break
         }
     }
