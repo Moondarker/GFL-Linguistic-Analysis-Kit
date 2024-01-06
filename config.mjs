@@ -138,7 +138,7 @@ const patches = [
     {
         chapter: 'CH. 5.5: Operation Cube+',
         action: 'rename',
-        targetChapter: 'CH. 5.5: Operation Cube',
+        name: 'CH. 5.5: Operation Cube',
     }
 ]
 
