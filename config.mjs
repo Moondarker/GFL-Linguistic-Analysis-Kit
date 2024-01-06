@@ -21,13 +21,13 @@ const patches = [
     },
     {
         chapter: 'DJMax Respect: Glory Day',
-        action: 'delete', // reason: "-19-1-2First.txt";"-19-2-2First.txt";"-19-3-2First.txt" are duplicates of respective non-First files
-        episode: '{FALLBACK}'
+        episode: '{FALLBACK}',
+        action: 'delete' // reason: "-19-1-2First.txt";"-19-2-2First.txt";"-19-3-2First.txt" are duplicates of respective non-First files
     },
     {
         chapter: 'CH 10.75: Continuum Turbulence',
-        action: 'delete', // reason: all seem to be duplicates. TODO: double-check
-        episode: '{FALLBACK}'
+        episode: '{FALLBACK}',
+        action: 'delete' // reason: all seem to be duplicates. TODO: double-check
     },
     {
         chapter: 'Halloween 2019',
@@ -110,6 +110,35 @@ const patches = [
         chapter: 'Longitudinal Strain',
         episode: 'U (No idea what this is)',
         action: 'notstory'
+    },
+    {
+        chapter: 'CH. 5.5: Operation Cube+',
+        episode: 'Blindfold Theorem I',
+        action: 'move',
+        targetChapter: 'CH. 7.75: Operation Cube+',
+    },
+    {
+        chapter: 'CH. 5.5: Operation Cube+',
+        episode: 'Blindfold Theorem II',
+        action: 'move',
+        targetChapter: 'CH. 7.75: Operation Cube+',
+    },
+    {
+        chapter: 'CH. 5.5: Operation Cube+',
+        episode: 'Blindfold Theorem III',
+        action: 'move',
+        targetChapter: 'CH. 7.75: Operation Cube+',
+    },
+    {
+        chapter: 'CH. 5.5: Operation Cube+',
+        episode: 'Blindfold Theorem IV',
+        action: 'move',
+        targetChapter: 'CH. 7.75: Operation Cube+',
+    },
+    {
+        chapter: 'CH. 5.5: Operation Cube+',
+        action: 'rename',
+        targetChapter: 'CH. 5.5: Operation Cube',
     }
 ]
 

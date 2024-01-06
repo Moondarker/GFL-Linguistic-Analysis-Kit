@@ -2,9 +2,10 @@
 // Author: MoonlightArchivist
 // Thanks for your archiving efforts <3
 const EVENTS = [
-    {name: "CH. 5.5: Operation Cube+", story: true, num_only: false, prefixes: ["-7-"]}, //"-1-" is a copy of "-6-" for whatever reason
+    {name: "CH. 5.5: Operation Cube", story: true, num_only: false, prefixes: ["-6-"]}, //"-1-" is a copy of "-6-" for whatever reason
     {name: "Chapter 7", story: true, num_only: true, prefixes: ["7-"]},
     {name: "CH. 7.5: Arctic Warfare", story: true, num_only: false, prefixes: ["-2-", "-3-", "-4-", "-5-"]},
+    {name: "CH. 7.75: Operation Cube+", story: true, num_only: false, prefixes: ["-7-"]}, //"-1-" is a copy of "-6-" for whatever reason
     {name: "Chapter 8", story: true, num_only: true, prefixes: ["8-"]},
     {name: "Guilty Gear x BlazBlue: Operation Rabbit Hunt", story: false, num_only: false, prefixes: ["-8-"]},
     {name: "CH 8.5: Deep Dive", story: true, num_only: false, prefixes: ["-10", "-11", "-12", "-13"]},
