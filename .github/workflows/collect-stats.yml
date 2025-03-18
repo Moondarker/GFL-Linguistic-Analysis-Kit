@@ -32,7 +32,7 @@ jobs:
     - name: Collect stats
       run: npm run start
     - name: Archive stats
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: results
         path: result.*
